@@ -1,0 +1,157 @@
+<div class="details-page">
+  <app-site-header></app-site-header>
+
+  <main class="details-container">
+    <nav class="details-breadcrumbs" aria-label="Breadcrumb">
+      <a routerLink="/">Home</a><span>/</span>
+      <a routerLink="/products">Products</a><span>/</span>
+      <span *ngIf="details$ | async as state">{{ state.data?.product?.name || 'Product details' }}</span>
+    </nav>
+
+    <div *ngIf="loading" class="details-state" role="status">
+      <span class="details-spinner"></span> Loading product details…
+    </div>
+    <div *ngIf="!loading && errorMessage" class="details-state details-error" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button type="button" class="details-button secondary-button" (click)="loadProduct()">Try again</button>
+    </div>
+
+    <ng-container *ngIf="details$ | async as state">
+      <section *ngIf="!loading && !errorMessage && state.notFound" class="details-state not-found-state">
+        <span class="not-found-icon" aria-hidden="true">⌕</span>
+        <h1>Product not found</h1>
+        <p>This product may be unavailable or the link may be incorrect.</p>
+        <a class="details-button" routerLink="/products">Browse products</a>
+      </section>
+
+      <ng-container *ngIf="!loading && !errorMessage && state.data as details">
+        <section class="product-overview">
+          <div class="gallery-column">
+            <div class="main-image">
+              <img
+                *ngIf="!isImageUnavailable(selectedImage)"
+                [src]="imageUrl(selectedImage)"
+                [alt]="details.product.name"
+                (error)="imageFailed(selectedImage)"
+              />
+              <div *ngIf="isImageUnavailable(selectedImage)" class="image-fallback" aria-hidden="true">
+                <span>{{ productVisual(details.product) }}</span>
+                <small>Product image</small>
+              </div>
+              <span class="gallery-discount" *ngIf="discountPercentage(details.product) > 0">
+                {{ discountPercentage(details.product) }}% OFF
+              </span>
+            </div>
+            <div class="gallery-thumbnails" *ngIf="productImages(details.product).length > 1">
+              <button
+                *ngFor="let image of productImages(details.product); trackBy: trackImage"
+                type="button"
+                [class.selected]="selectedImage === image"
+                [attr.aria-label]="'Show product image ' + (productImages(details.product).indexOf(image) + 1)"
+                (click)="selectImage(image)"
+              >
+                <img
+                  *ngIf="!isImageUnavailable(image)"
+                  [src]="imageUrl(image)"
+                  [alt]="details.product.name"
+                  (error)="imageFailed(image)"
+                />
+                <span *ngIf="isImageUnavailable(image)" aria-hidden="true">{{ productVisual(details.product) }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="product-summary">
+            <div class="product-taxonomy">
+              <a routerLink="/products" [queryParams]="{ category: details.category.id }">{{ details.category.name }}</a>
+              <span *ngIf="details.subcategory"> / {{ details.subcategory.name }}</span>
+            </div>
+            <span class="product-brand">{{ details.product.brand }}</span>
+            <h1>{{ details.product.name }}</h1>
+            <div class="product-rating">
+              <span aria-hidden="true">★</span> {{ details.product.rating }}
+              <span class="review-count">({{ details.product.reviewCount | number }} reviews)</span>
+            </div>
+            <p class="product-description">{{ details.product.description }}</p>
+
+            <div class="price-block">
+              <strong>{{ formatPrice(details.product.price) }}</strong>
+              <del *ngIf="details.product.originalPrice > details.product.price">
+                {{ formatPrice(details.product.originalPrice) }}
+              </del>
+              <span *ngIf="discountPercentage(details.product) > 0">{{ discountPercentage(details.product) }}% off</span>
+            </div>
+            <div class="affiliate-actions">
+              <a
+                class="details-button buy-button"
+                [href]="details.product.affiliate.url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Visit {{ details.product.affiliate.platform }} <span aria-hidden="true">↗</span>
+              </a>
+              <p>Purchases are completed on the external marketplace.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="offers-section">
+          <div class="section-heading">
+            <div><span class="section-kicker">More ways to save</span><h2>Coupons &amp; Deals</h2></div>
+            <span class="offer-count" *ngIf="details.coupons.length + details.deals.length">
+              {{ details.coupons.length + details.deals.length }} available
+            </span>
+          </div>
+
+          <p *ngIf="!details.coupons.length && !details.deals.length" class="no-offers">
+            No active offers available
+          </p>
+
+          <div class="offer-grid">
+            <article class="offer-card coupon-card" *ngFor="let coupon of details.coupons; trackBy: trackCoupon">
+              <div class="offer-card-top"><span class="offer-type coupon-type">Coupon</span><strong>{{ formatDiscount(coupon.discountType, coupon.discountValue) }}</strong></div>
+              <h3>{{ coupon.title }}</h3>
+              <p>{{ coupon.description }}</p>
+              <div class="coupon-code"><span>Code</span><strong>{{ coupon.code }}</strong></div>
+              <p class="offer-validity">Valid until {{ formatDate(coupon.validUntil) }}</p>
+              <p class="offer-terms">{{ coupon.terms }}</p>
+            </article>
+            <article class="offer-card deal-card" *ngFor="let deal of details.deals; trackBy: trackDeal">
+              <div class="offer-card-top"><span class="offer-type deal-type">Deal</span><strong>{{ formatDiscount(deal.discountType, deal.discountValue) }}</strong></div>
+              <h3>{{ deal.title }}</h3>
+              <p>{{ deal.description }}</p>
+              <p class="offer-validity">Valid {{ formatDate(deal.validFrom) }} – {{ formatDate(deal.validUntil) }}</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="related-section" *ngIf="details.relatedProducts.length">
+          <div class="section-heading">
+            <div><span class="section-kicker">Picked for you</span><h2>You May Also Like</h2></div>
+            <a class="view-all-link" routerLink="/products" [queryParams]="{ category: details.category.id }">View category <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="related-grid">
+            <article class="related-card" *ngFor="let product of details.relatedProducts; trackBy: trackProduct">
+              <a class="related-image" [routerLink]="['/products', product.id]" [attr.aria-label]="'View ' + product.name">
+                <img
+                  *ngIf="!isImageUnavailable(product.image)"
+                  [src]="imageUrl(product.image)"
+                  [alt]="product.name"
+                  (error)="imageFailed(product.image)"
+                />
+                <span *ngIf="isImageUnavailable(product.image)" aria-hidden="true">{{ productVisual(product) }}</span>
+              </a>
+              <div class="related-info">
+                <span class="product-brand">{{ product.brand }}</span>
+                <a class="related-name" [routerLink]="['/products', product.id]">{{ product.name }}</a>
+                <div class="related-rating"><span aria-hidden="true">★</span> {{ product.rating }} <span>({{ product.reviewCount | number }})</span></div>
+                <strong class="related-price">{{ formatPrice(product.price) }}</strong>
+              </div>
+            </article>
+          </div>
+        </section>
+      </ng-container>
+    </ng-container>
+  </main>
+  <app-site-footer></app-site-footer>
+</div>

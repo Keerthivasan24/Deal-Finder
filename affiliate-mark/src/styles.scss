@@ -1,0 +1,84 @@
+@use './app/home/home-page-global';
+@use './app/products/products-listing-global';
+@use './app/products/product-details-global';
+@use './app/offers/offers-page-global';
+@use './app/categories/categories-page-global';
+
+:root {
+  color-scheme: light;
+  --deal-ink: #17233c;
+  --deal-muted: #748098;
+  --deal-purple: #6b55e8;
+  --deal-purple-dark: #5340cf;
+  --deal-line: #e8ebf2;
+  --deal-surface: #fff;
+  --deal-page: #fafbfe;
+  --deal-radius-card: 12px;
+  --deal-radius-control: 8px;
+  --ink: var(--deal-ink);
+  --muted: var(--deal-muted);
+  --purple: var(--deal-purple);
+  --purple-dark: var(--deal-purple-dark);
+  --line: var(--deal-line);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-x: clip;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: var(--deal-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: clip;
+}
+
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+img {
+  max-width: 100%;
+}
+
+.product-card,
+.deal-card,
+.category-card,
+.category-page-card,
+.related-card,
+.offer-list-card {
+  border-radius: var(--deal-radius-card);
+}
+
+:focus-visible {
+  outline: 2px solid #8a78ef;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

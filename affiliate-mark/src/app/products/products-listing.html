@@ -1,0 +1,227 @@
+<div class="listing-page">
+  <app-site-header></app-site-header>
+
+  <main>
+    <section class="listing-intro">
+      <div class="listing-container">
+        <div class="breadcrumbs"><a routerLink="/">Home</a><span>/</span><span>Products</span></div>
+        <div class="intro-row">
+          <div>
+            <span class="intro-kicker">The good stuff, all in one place</span>
+            <h1>Explore Products</h1>
+            <p>Discover handpicked products, fresh deals and extra savings for every day.</p>
+          </div>
+          <div class="intro-decoration" aria-hidden="true"><span>✦</span><span>🛍️</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="listing-container listing-content">
+      <div class="toolbar">
+        <div class="result-count" *ngIf="listing$ | async as listing">
+          <strong>{{ listing.totalProducts }}</strong>
+          {{ listing.totalProducts === 1 ? 'product' : 'products' }} found
+        </div>
+        <div class="toolbar-controls">
+          <label class="search-control">
+            <span class="visually-hidden">Search by product or brand</span>
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input
+              type="search"
+              placeholder="Search products or brands"
+              [value]="(listing$ | async)?.filters?.search || ''"
+              (input)="updateSearch($event)"
+            />
+          </label>
+          <label class="sort-control">
+            <span>Sort by</span>
+            <select [value]="(listing$ | async)?.filters?.sort || 'featured'" (change)="updateSort($event)">
+              <option value="featured">Featured</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="rating">Highest Rated</option>
+            </select>
+          </label>
+          <button
+            class="mobile-filter-toggle"
+            type="button"
+            aria-controls="product-filters"
+            [attr.aria-expanded]="mobileFiltersOpen"
+            (click)="toggleMobileFilters()"
+          >
+            <span aria-hidden="true">☷</span> Filters
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="loading" class="listing-state" role="status"><span class="spinner"></span> Loading products…</div>
+      <div *ngIf="!loading && errorMessage" class="listing-state error-state" role="alert">
+        <span>{{ errorMessage }}</span>
+        <button type="button" class="retry-button" (click)="loadProducts()">Try again</button>
+      </div>
+
+      <ng-container *ngIf="listing$ | async as listing">
+        <div class="listing-layout" *ngIf="!loading && !errorMessage">
+          <aside id="product-filters" class="filter-sidebar" [class.filters-open]="mobileFiltersOpen">
+            <div class="filter-heading">
+              <div><span class="filter-icon">☷</span><h2>Filters</h2></div>
+              <button type="button" class="clear-filters" (click)="clearFilters()">Clear all</button>
+              <button class="close-filters" type="button" aria-label="Close filters" (click)="toggleMobileFilters()">×</button>
+            </div>
+
+            <div class="filter-group category-filter">
+              <h3>Categories</h3>
+              <label class="check-row" *ngFor="let category of listing.categories">
+                <input
+                  type="checkbox"
+                  [checked]="isCategorySelected(category, listing.filters)"
+                  (change)="toggleCategory(category, $event, listing.filters)"
+                />
+                <span class="custom-check" aria-hidden="true"></span>
+                <span class="check-label">{{ category.name }}</span>
+                <span class="category-count">{{ listing.categoryCounts[category.id] || 0 }}</span>
+              </label>
+            </div>
+
+            <div class="filter-group" *ngIf="subcategoriesFor(listing).length">
+              <h3>Subcategory</h3>
+              <label class="visually-hidden" for="subcategory-filter">Subcategory</label>
+              <select
+                id="subcategory-filter"
+                class="filter-select"
+                [value]="listing.filters.subcategory || ''"
+                (change)="updateSubcategory($event)"
+              >
+                <option value="">All subcategories</option>
+                <option
+                  *ngFor="let subcategory of subcategoriesFor(listing)"
+                  [value]="subcategory.id"
+                  [selected]="listing.filters.subcategory === subcategory.id"
+                >
+                  {{ subcategory.name }}
+                </option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <h3>Offer type</h3>
+              <label class="visually-hidden" for="offer-filter">Offer type</label>
+              <select id="offer-filter" class="filter-select" [value]="listing.filters.offer" (change)="updateOffer($event)">
+                <option value="all">All products</option>
+                <option value="coupons">Coupons only</option>
+                <option value="deals">Deals only</option>
+              </select>
+            </div>
+
+            <div class="filter-group price-filter">
+              <h3>Price range</h3>
+              <p>Choose your budget in INR</p>
+              <div class="price-inputs">
+                <label>
+                  <span>Min</span>
+                  <input type="number" min="0" placeholder="₹0" [value]="listing.filters.minPrice ?? ''" (change)="updatePrice($event, 'min')" />
+                </label>
+                <span class="price-separator">—</span>
+                <label>
+                  <span>Max</span>
+                  <input type="number" min="0" placeholder="No limit" [value]="listing.filters.maxPrice ?? ''" (change)="updatePrice($event, 'max')" />
+                </label>
+              </div>
+            </div>
+            <button type="button" class="apply-filters" (click)="toggleMobileFilters()">Show {{ listing.totalProducts }} products</button>
+          </aside>
+          <button
+            *ngIf="mobileFiltersOpen"
+            class="filter-overlay"
+            type="button"
+            aria-label="Close filters"
+            (click)="toggleMobileFilters()"
+          ></button>
+
+          <div class="product-results">
+            <div class="results-summary">
+              <span>
+                Showing <strong>{{ listing.totalProducts ? (listing.filters.page - 1) * listing.pageSize + 1 : 0 }}–{{ (listing.filters.page - 1) * listing.pageSize + listing.products.length }}</strong>
+                of <strong>{{ listing.totalProducts }}</strong> products
+              </span>
+              <span class="results-sort-label">Curated for you <span aria-hidden="true">✦</span></span>
+            </div>
+
+            <div class="product-grid" *ngIf="listing.products.length; else noProducts">
+              <article class="product-card" *ngFor="let item of listing.products; trackBy: trackProduct">
+                <a
+                  class="card-hit-area"
+                  [routerLink]="['/products', item.product.id]"
+                  [attr.aria-label]="'View details for ' + item.product.name"
+                  tabindex="-1"
+                ><span class="visually-hidden">View product details</span></a>
+                <a class="product-image" [routerLink]="['/products', item.product.id]" [attr.aria-label]="'View details for ' + item.product.name">
+                  <img
+                    *ngIf="!isImageUnavailable(item.product.id)"
+                    [src]="imageUrl(item.product.image)"
+                    [alt]="item.product.name"
+                    (error)="imageFailed(item.product.id)"
+                  />
+                  <div class="product-fallback" *ngIf="isImageUnavailable(item.product.id)" aria-hidden="true">
+                    <span>{{ productVisual(item) }}</span>
+                  </div>
+                  <span class="discount-badge" *ngIf="discountPercentage(item) > 0">{{ discountPercentage(item) }}% OFF</span>
+                  <span class="featured-badge" *ngIf="item.product.isFeatured">FEATURED</span>
+                </a>
+                <div class="product-info">
+                  <span class="product-brand">{{ item.product.brand }}</span>
+                  <a class="product-name" [routerLink]="['/products', item.product.id]">{{ item.product.name }}</a>
+                  <div class="product-rating"><span aria-hidden="true">★</span> {{ item.product.rating }} <span class="review-count">({{ item.product.reviewCount | number }} reviews)</span></div>
+                  <div class="price-offer-row">
+                    <div class="product-price">
+                      <strong>{{ item.product.price | currency:'INR':'symbol':'1.0-0':'en-IN' }}</strong>
+                      <del *ngIf="item.product.originalPrice > item.product.price">{{ item.product.originalPrice | currency:'INR':'symbol':'1.0-0':'en-IN' }}</del>
+                    </div>
+                    <div class="offer-pills" *ngIf="item.hasCoupons || item.hasDeals">
+                      <span class="offer-pill deal-pill" *ngIf="item.hasDeals">Deal</span>
+                      <span class="offer-pill coupon-pill" *ngIf="item.hasCoupons">Coupon</span>
+                    </div>
+                  </div>
+                  <a class="view-details" [routerLink]="['/products', item.product.id]">
+                    View details <span aria-hidden="true">↗</span>
+                  </a>
+                  <a
+                    class="buy-now"
+                    [href]="item.product.affiliate.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Buy Now <span aria-hidden="true">↗</span>
+                  </a>
+                </div>
+              </article>
+            </div>
+
+            <ng-template #noProducts>
+              <div class="empty-state">
+                <span class="empty-icon" aria-hidden="true">⌕</span>
+                <h2>No products match those filters</h2>
+                <p>Try adjusting your search or clearing one or more filters to see more results.</p>
+                <button type="button" class="reset-button" (click)="clearFilters()">Clear all filters</button>
+              </div>
+            </ng-template>
+
+            <nav class="pagination" *ngIf="listing.pageCount > 1" aria-label="Product pages">
+              <button type="button" [disabled]="listing.filters.page <= 1" (click)="changePage(listing.filters.page - 1)">← Previous</button>
+              <button
+                type="button"
+                *ngFor="let page of pageNumbers(listing.pageCount)"
+                [class.current]="listing.filters.page === page"
+                [attr.aria-current]="listing.filters.page === page ? 'page' : null"
+                (click)="changePage(page)"
+              >{{ page }}</button>
+              <button type="button" [disabled]="listing.filters.page >= listing.pageCount" (click)="changePage(listing.filters.page + 1)">Next →</button>
+            </nav>
+          </div>
+        </div>
+      </ng-container>
+    </section>
+  </main>
+
+  <app-site-footer></app-site-footer>
+</div>

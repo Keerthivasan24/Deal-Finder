@@ -1,0 +1,91 @@
+<div class="categories-page">
+  <app-site-header></app-site-header>
+
+  <main>
+    <section class="categories-intro">
+      <div class="categories-container">
+        <div class="categories-breadcrumbs">
+          <a routerLink="/">Home</a><span>/</span><span>Categories</span>
+        </div>
+        <div class="categories-intro-row">
+          <div>
+            <span class="categories-kicker">Find your something</span>
+            <h1>Explore Categories</h1>
+            <p>Browse our collections and discover picks, deals and savings that fit your day.</p>
+          </div>
+          <div class="categories-intro-art" aria-hidden="true"><span>✦</span><span>⌕</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="categories-container categories-content">
+      <div class="categories-section-heading">
+        <div>
+          <span class="categories-kicker">Shop your interests</span>
+          <h2>All Categories</h2>
+        </div>
+        <a class="browse-products-link" routerLink="/products">Browse all products <span aria-hidden="true">→</span></a>
+      </div>
+
+      <div *ngIf="loading" class="categories-state" role="status">
+        <span class="categories-spinner" aria-hidden="true"></span> Loading categories…
+      </div>
+      <div *ngIf="!loading && errorMessage" class="categories-state categories-error" role="alert">
+        <span>{{ errorMessage }}</span>
+        <button type="button" class="categories-button" (click)="loadCategories()">Try again</button>
+      </div>
+
+      <ng-container *ngIf="categories$ | async as categories">
+        <div class="categories-grid" *ngIf="!loading && !errorMessage && categories.length; else noCategories">
+          <article class="category-page-card" *ngFor="let item of categories; trackBy: trackCategory">
+            <a
+              class="category-page-main"
+              [routerLink]="['/products']"
+              [queryParams]="{ category: item.category.id }"
+              [attr.aria-label]="'Explore ' + item.category.name"
+            >
+              <div class="category-page-image">
+                <img
+                  *ngIf="!isImageUnavailable(item.category.id)"
+                  [src]="imageUrl(item.category.image)"
+                  [alt]="item.category.name"
+                  (error)="imageFailed(item.category.id)"
+                />
+                <span *ngIf="isImageUnavailable(item.category.id)" class="category-page-fallback" aria-hidden="true">
+                  {{ iconFor(item.category.icon) }}
+                </span>
+                <span class="category-page-icon" aria-hidden="true">{{ iconFor(item.category.icon) }}</span>
+              </div>
+              <div class="category-card-details">
+                <div>
+                  <h3>{{ item.category.name }}</h3>
+                  <p>{{ item.activeProductCount }} {{ item.activeProductCount === 1 ? 'product' : 'products' }}</p>
+                </div>
+                <span class="category-explore">Explore <span aria-hidden="true">↗</span></span>
+              </div>
+            </a>
+            <div class="subcategory-list" *ngIf="item.subcategories.length">
+              <a
+                *ngFor="let subcategoryItem of item.subcategories; trackBy: trackSubcategory"
+                [routerLink]="['/products']"
+                [queryParams]="{ category: item.category.id, subcategory: subcategoryItem.subcategory.id }"
+                [attr.aria-label]="'Explore ' + subcategoryItem.subcategory.name"
+              >
+                <span>{{ subcategoryItem.subcategory.name }}</span>
+                <span class="subcategory-count">{{ subcategoryItem.activeProductCount }}</span>
+              </a>
+            </div>
+          </article>
+        </div>
+        <ng-template #noCategories>
+          <div class="categories-empty" *ngIf="!loading && !errorMessage">
+            <span aria-hidden="true">🏷️</span>
+            <h2>No categories available</h2>
+            <p>Categories will appear here when available.</p>
+          </div>
+        </ng-template>
+      </ng-container>
+    </section>
+  </main>
+  <app-site-footer></app-site-footer>
+</div>

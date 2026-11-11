@@ -1,0 +1,211 @@
+<div class="site-shell">
+  <app-site-header></app-site-header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-inner page-container">
+        <div class="hero-copy">
+          <span class="eyebrow"><span class="eyebrow-dot"></span> A better way to shop smart</span>
+          <h1>Discover Deals.<br /><span>Save More.</span></h1>
+          <p>Find handpicked prices, limited-time offers and coupons on the things you love — all in one place.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" routerLink="/products">Explore Products <span aria-hidden="true">→</span></a>
+            <a class="text-link" routerLink="/categories">Browse categories</a>
+          </div>
+          <div class="hero-proof">
+            <span class="proof-stars" aria-label="Five stars">★★★★★</span>
+            <span>Curated picks for smarter shopping</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-label="Featured deal promotion">
+          <div class="hero-orbit orbit-one"></div>
+          <div class="hero-orbit orbit-two"></div>
+          <div class="hero-spark spark-one">✦</div>
+          <div class="hero-spark spark-two">✦</div>
+          <div class="hero-deal-card">
+            <span class="hero-card-tag">THE SMART SHOPPER'S PICK</span>
+            <div class="hero-card-product" aria-hidden="true">🛍️</div>
+            <div class="hero-card-footer">
+              <span><strong>Good finds.</strong><br />Better prices.</span>
+              <span class="hero-discount">DEALS<br /><strong>INSIDE</strong></span>
+            </div>
+          </div>
+          <div class="floating-note note-top"><span>✦</span> Fresh finds</div>
+          <div class="floating-note note-bottom"><span>✓</span> Worth the click</div>
+        </div>
+      </div>
+    </section>
+
+    <div *ngIf="loading" class="page-container state-message" role="status">
+      <span class="loading-spinner" aria-hidden="true"></span>
+      Loading today's picks…
+    </div>
+    <div *ngIf="!loading && errorMessage" class="page-container state-message error-message" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button class="button button-outline" type="button" (click)="loadData()">Try again</button>
+    </div>
+
+    <ng-container *ngIf="homeData$ | async as home">
+      <section id="categories" class="content-section category-section" *ngIf="!loading && !errorMessage">
+        <div class="page-container">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">Find your something</span>
+              <h2>Shop by category</h2>
+              <p>Explore the good stuff, organized just for you.</p>
+            </div>
+            <a class="section-link" routerLink="/categories">All categories <span aria-hidden="true">→</span></a>
+          </div>
+
+          <div class="category-grid" *ngIf="home.categories.length; else noCategories">
+            <a
+              class="category-card"
+              *ngFor="let category of home.categories"
+              [routerLink]="['/products']"
+              [queryParams]="{ category: category.slug }"
+              [attr.aria-label]="'Explore ' + category.name"
+            >
+              <div class="category-image">
+                <img
+                  *ngIf="!categoryImageUnavailable(category.id)"
+                  [src]="imageUrl(category.image)"
+                  [alt]="category.name"
+                  (error)="categoryImageFailed(category.id)"
+                />
+                <div class="category-fallback" *ngIf="categoryImageUnavailable(category.id)" aria-hidden="true">
+                  <span>{{ categoryVisual(category.id) }}</span>
+                </div>
+                <span class="category-icon" aria-hidden="true">{{ categoryIcon(category.icon) }}</span>
+              </div>
+              <span class="category-name">{{ category.name }}</span>
+              <span class="category-arrow" aria-hidden="true">↗</span>
+            </a>
+          </div>
+          <ng-template #noCategories>
+            <p class="empty-message">Categories will appear here when available.</p>
+          </ng-template>
+        </div>
+      </section>
+
+      <section class="content-section trending-section" *ngIf="!loading && !errorMessage">
+        <div class="page-container">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">Loved by deal hunters</span>
+              <h2>Trending products</h2>
+              <p>Popular picks with prices worth a closer look.</p>
+            </div>
+            <a class="section-link" routerLink="/products">View all products <span aria-hidden="true">→</span></a>
+          </div>
+
+          <div class="product-grid" *ngIf="home.trendingProducts.length; else noTrending">
+            <article class="product-card" *ngFor="let product of home.trendingProducts">
+              <a class="product-image" [routerLink]="['/products', product.id]">
+                <img
+                  *ngIf="!productImageUnavailable(product.id)"
+                  [src]="imageUrl(product.image)"
+                  [alt]="product.name"
+                  (error)="productImageFailed(product.id)"
+                />
+                <div class="product-fallback" *ngIf="productImageUnavailable(product.id)" aria-hidden="true">
+                  <span>{{ productVisual(product.categoryId) }}</span>
+                </div>
+                <span class="featured-label">TRENDING</span>
+              </a>
+              <div class="product-info">
+                <span class="product-brand">{{ product.brand }}</span>
+                <a class="product-name" [routerLink]="['/products', product.id]">{{ product.name }}</a>
+                <div class="product-rating"><span aria-hidden="true">★</span> {{ product.rating }} <span class="review-count">({{ product.reviewCount | number }} reviews)</span></div>
+                <div class="product-price">
+                  <strong>{{ formatPrice(product.price) }}</strong>
+                  <del *ngIf="product.originalPrice > product.price">{{ formatPrice(product.originalPrice) }}</del>
+                </div>
+                <div class="offer-pills" *ngIf="product.couponIds.length || product.dealIds.length">
+                  <span *ngIf="product.dealIds.length" class="offer-pill deal-pill">Deal</span>
+                  <span *ngIf="product.couponIds.length" class="offer-pill coupon-pill">Coupon</span>
+                </div>
+              </div>
+            </article>
+          </div>
+          <ng-template #noTrending>
+            <p class="empty-message">No featured products are available right now.</p>
+          </ng-template>
+        </div>
+      </section>
+
+      <section class="content-section deals-section" *ngIf="!loading && !errorMessage">
+        <div class="page-container">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">The clock is ticking</span>
+              <h2>Today's best deals</h2>
+              <p>Active offers matched to products you can shop.</p>
+            </div>
+            <a class="section-link" routerLink="/deals">View all deals <span aria-hidden="true">→</span></a>
+          </div>
+
+          <div class="deal-grid" *ngIf="home.activeDeals.length; else noDeals">
+            <article class="deal-card" *ngFor="let item of home.activeDeals">
+              <a class="deal-image" [routerLink]="['/products', item.product.id]">
+                <img
+                  *ngIf="!productImageUnavailable(item.product.id)"
+                  [src]="imageUrl(item.product.image)"
+                  [alt]="item.product.name"
+                  (error)="productImageFailed(item.product.id)"
+                />
+                <div class="product-fallback" *ngIf="productImageUnavailable(item.product.id)" aria-hidden="true">
+                  <span>{{ productVisual(item.product.categoryId) }}</span>
+                </div>
+                <span class="deal-ribbon">{{ formatDiscount(item.deal.discountType, item.deal.discountValue) }}</span>
+              </a>
+              <div class="deal-info">
+                <span class="deal-type">{{ formatDealType(item.deal.dealType) }}</span>
+                <a class="deal-title" [routerLink]="['/products', item.product.id]">{{ item.deal.title }}</a>
+                <span class="deal-product-name">{{ item.product.name }}</span>
+                <div class="product-price">
+                  <strong>{{ formatPrice(item.product.price) }}</strong>
+                  <del *ngIf="item.product.originalPrice > item.product.price">{{ formatPrice(item.product.originalPrice) }}</del>
+                </div>
+                <p class="deal-description">{{ item.deal.description }}</p>
+              </div>
+            </article>
+          </div>
+          <ng-template #noDeals>
+            <p class="empty-message">There are no active deals right now. Check back soon.</p>
+          </ng-template>
+        </div>
+      </section>
+
+      <section class="content-section coupon-section" *ngIf="!loading && !errorMessage">
+        <div class="page-container">
+          <div class="section-heading">
+            <div>
+              <span class="section-kicker">A little extra off</span>
+              <h2>Latest coupons</h2>
+              <p>Copy a code and make your next find even sweeter.</p>
+            </div>
+            <a class="section-link" routerLink="/coupons">View all coupons <span aria-hidden="true">→</span></a>
+          </div>
+
+          <div class="coupon-grid" *ngIf="home.activeCoupons.length; else noCoupons">
+            <article class="coupon-card" *ngFor="let item of home.activeCoupons">
+              <div class="coupon-discount">{{ formatDiscount(item.coupon.discountType, item.coupon.discountValue) }}</div>
+              <div class="coupon-details">
+                <span class="product-brand">{{ item.product.brand }}</span>
+                <a class="coupon-product" [routerLink]="['/products', item.product.id]">{{ item.product.name }}</a>
+                <h3>{{ item.coupon.title }}</h3>
+                <p>{{ item.coupon.description }}</p>
+                <div class="coupon-code"><span>CODE</span><strong>{{ item.coupon.code }}</strong><span aria-hidden="true">✂</span></div>
+              </div>
+            </article>
+          </div>
+          <ng-template #noCoupons>
+            <p class="empty-message">No active coupons at the moment. New savings are on the way.</p>
+          </ng-template>
+        </div>
+      </section>
+    </ng-container>
+  </main>
+
+  <app-site-footer></app-site-footer>
+</div>

@@ -1,0 +1,153 @@
+<div class="offers-page">
+  <app-site-header></app-site-header>
+
+  <main>
+    <section class="offers-intro">
+      <div class="offers-container">
+        <div class="offers-breadcrumbs">
+          <a routerLink="/">Home</a><span>/</span><span>{{ kind === 'deals' ? 'Deals' : 'Coupons' }}</span>
+        </div>
+        <div class="offers-intro-row">
+          <div>
+            <span class="offers-kicker">{{ kind === 'deals' ? 'Savings worth a look' : 'A little extra off' }}</span>
+            <h1>{{ kind === 'deals' ? "Today's Best Deals" : 'Latest Coupons' }}</h1>
+            <p *ngIf="kind === 'deals'">Explore current offers and limited-time prices from our product picks.</p>
+            <p *ngIf="kind === 'coupons'">Find a coupon, copy its code and save on your next product pick.</p>
+          </div>
+          <div class="offers-intro-art" aria-hidden="true"><span>{{ kind === 'deals' ? '⚡' : '%' }}</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="offers-container offers-content">
+      <div class="offers-toolbar">
+        <div class="offers-count" *ngIf="offers$ | async as offers">
+          <strong>{{ offers.total }}</strong> {{ kind === 'deals' ? 'deals' : 'coupons' }} found
+        </div>
+        <div class="offers-controls">
+          <label class="offers-search">
+            <span class="visually-hidden">{{ kind === 'deals' ? 'Search deals and products' : 'Search coupons, codes and products' }}</span>
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input
+              type="search"
+              [placeholder]="kind === 'deals' ? 'Search deals or products' : 'Search coupons, codes or products'"
+              [value]="(offers$ | async)?.search || ''"
+              (input)="updateSearch($event)"
+            />
+          </label>
+          <label class="offers-sort">
+            <span>Sort by</span>
+            <select [value]="(offers$ | async)?.sort || 'featured'" (change)="updateSort($event)">
+              <option value="featured">Featured</option>
+              <option value="discount">Highest Discount</option>
+              <option value="newest">Newest</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div *ngIf="loading" class="offers-state" role="status"><span class="offers-spinner"></span> Loading {{ kind }}…</div>
+      <div *ngIf="!loading && errorMessage" class="offers-state offers-error" role="alert">
+        <span>{{ errorMessage }}</span>
+        <button type="button" class="offer-button" (click)="loadOffers()">Try again</button>
+      </div>
+
+      <ng-container *ngIf="offers$ | async as offers">
+        <ng-container *ngIf="!loading && !errorMessage">
+          <div class="offer-results-heading">
+            <span>Showing <strong>{{ offers.total }}</strong> {{ kind === 'deals' ? 'deals' : 'coupons' }}</span>
+            <span class="results-note">Handpicked for you <span aria-hidden="true">✦</span></span>
+          </div>
+
+          <div class="offer-grid" *ngIf="kind === 'deals' && offers.deals.length">
+            <article class="offer-list-card deal-list-card" *ngFor="let item of offers.deals; trackBy: trackDeal">
+              <a class="offer-image" [routerLink]="['/products', item.product.id]" [attr.aria-label]="'View ' + item.product.name">
+                <img
+                  *ngIf="!isImageUnavailable(item.product.id)"
+                  [src]="imageUrl(item.product.image)"
+                  [alt]="item.product.name"
+                  (error)="imageFailed(item.product.id)"
+                />
+                <span *ngIf="isImageUnavailable(item.product.id)" class="offer-image-fallback" aria-hidden="true">
+                  {{ productVisual(item.product) }}
+                </span>
+                <span class="offer-image-badge">{{ formatDiscount(item.deal.discountType, item.deal.discountValue) }}</span>
+              </a>
+              <div class="offer-card-content">
+                <div class="offer-card-meta"><span class="offer-kind deal-kind">Deal</span><span>{{ item.deal.dealType.replaceAll('_', ' ') }}</span></div>
+                <h2>{{ item.deal.title }}</h2>
+                <p class="offer-description">{{ item.deal.description }}</p>
+                <a class="offer-product-name" [routerLink]="['/products', item.product.id]">{{ item.product.name }}</a>
+                <div class="offer-price">
+                  <strong>{{ formatPrice(item.product.price) }}</strong>
+                  <del *ngIf="item.product.originalPrice > item.product.price">{{ formatPrice(item.product.originalPrice) }}</del>
+                </div>
+                <p class="offer-validity">Valid until {{ formatDate(item.deal.validUntil) }}</p>
+                <a class="offer-button" [routerLink]="['/products', item.product.id]">View Product <span aria-hidden="true">→</span></a>
+              </div>
+            </article>
+          </div>
+
+          <div class="offer-grid coupon-grid" *ngIf="kind === 'coupons' && offers.coupons.length">
+            <article class="offer-list-card coupon-list-card" *ngFor="let item of offers.coupons; trackBy: trackCoupon">
+              <a class="offer-image" [routerLink]="['/products', item.product.id]" [attr.aria-label]="'View ' + item.product.name">
+                <img
+                  *ngIf="!isImageUnavailable(item.product.id)"
+                  [src]="imageUrl(item.product.image)"
+                  [alt]="item.product.name"
+                  (error)="imageFailed(item.product.id)"
+                />
+                <span *ngIf="isImageUnavailable(item.product.id)" class="offer-image-fallback" aria-hidden="true">
+                  {{ productVisual(item.product) }}
+                </span>
+                <span class="offer-image-badge">{{ formatDiscount(item.coupon.discountType, item.coupon.discountValue) }}</span>
+              </a>
+              <div class="offer-card-content">
+                <div class="offer-card-meta"><span class="offer-kind coupon-kind">Coupon</span><span>{{ item.product.brand }}</span></div>
+                <h2>{{ item.coupon.title }}</h2>
+                <p class="offer-description">{{ item.coupon.description }}</p>
+                <a class="offer-product-name" [routerLink]="['/products', item.product.id]">{{ item.product.name }}</a>
+                <div class="coupon-code-row">
+                  <div class="coupon-code"><span>CODE</span><strong>{{ item.coupon.code }}</strong></div>
+                  <button type="button" class="copy-code" (click)="copyCode(item.coupon)">
+                    {{ copyFeedback[item.coupon.id] === 'Code copied!' ? 'Copied!' : 'Copy Code' }}
+                  </button>
+                </div>
+                <p
+                  class="copy-feedback"
+                  [class.copy-error]="copyFeedback[item.coupon.id] && copyFeedback[item.coupon.id] !== 'Code copied!'"
+                  *ngIf="copyFeedback[item.coupon.id]"
+                  role="status"
+                >{{ copyFeedback[item.coupon.id] }}</p>
+                <div class="coupon-conditions">
+                  <span *ngIf="item.coupon.minimumPurchase > 0">Min. purchase {{ formatPrice(item.coupon.minimumPurchase) }}</span>
+                  <span *ngIf="item.coupon.maxDiscount > 0">Max. discount {{ formatPrice(item.coupon.maxDiscount) }}</span>
+                </div>
+                <p class="offer-validity">Valid until {{ formatDate(item.coupon.validUntil) }}</p>
+                <p class="offer-terms" *ngIf="item.coupon.terms">{{ item.coupon.terms }}</p>
+                <a class="offer-button" [routerLink]="['/products', item.product.id]">View Product <span aria-hidden="true">→</span></a>
+              </div>
+            </article>
+          </div>
+
+          <div
+            class="offers-empty"
+            *ngIf="offers.total === 0"
+            role="status"
+          >
+            <span aria-hidden="true">{{ kind === 'deals' ? '⚡' : '％' }}</span>
+            <h2>{{ offers.search ? 'No matching offers' : 'No active offers right now' }}</h2>
+            <p>
+              {{ offers.search
+                ? 'Try another search term to find ' + kind + '.'
+                : 'Check back soon for new ' + kind + ' on products you love.' }}
+            </p>
+            <a *ngIf="offers.search" class="offer-button" [routerLink]="[]" [queryParams]="{ q: null, sort: offers.sort === 'featured' ? null : offers.sort }">Clear search</a>
+            <a *ngIf="!offers.search" class="offer-button" routerLink="/products">Browse products</a>
+          </div>
+        </ng-container>
+      </ng-container>
+    </section>
+  </main>
+  <app-site-footer></app-site-footer>
+</div>

@@ -1,0 +1,106 @@
+[
+  {
+    "id": "category-electronics",
+    "name": "Electronics",
+    "slug": "electronics",
+    "icon": "monitor-smartphone",
+    "image": "assets/images/categories/electronics.jpg",
+    "subcategories": [
+      { "id": "subcategory-electronics-smartphones", "name": "Smartphones", "slug": "smartphones" },
+      { "id": "subcategory-electronics-laptops", "name": "Laptops", "slug": "laptops" },
+      { "id": "subcategory-electronics-audio", "name": "Audio & Headphones", "slug": "audio-headphones" },
+      { "id": "subcategory-electronics-tvs", "name": "TVs & Home Theater", "slug": "tvs-home-theater" }
+    ]
+  },
+  {
+    "id": "category-furniture",
+    "name": "Furniture",
+    "slug": "furniture",
+    "icon": "armchair",
+    "image": "assets/images/categories/furniture.jpg",
+    "subcategories": [
+      { "id": "subcategory-furniture-living-room", "name": "Living Room", "slug": "living-room" },
+      { "id": "subcategory-furniture-bedroom", "name": "Bedroom", "slug": "bedroom" },
+      { "id": "subcategory-furniture-office", "name": "Office Furniture", "slug": "office-furniture" },
+      { "id": "subcategory-furniture-outdoor", "name": "Outdoor Furniture", "slug": "outdoor-furniture" }
+    ]
+  },
+  {
+    "id": "category-fashion",
+    "name": "Fashion",
+    "slug": "fashion",
+    "icon": "shirt",
+    "image": "assets/images/categories/fashion.jpg",
+    "subcategories": [
+      { "id": "subcategory-fashion-womens-clothing", "name": "Women's Clothing", "slug": "womens-clothing" },
+      { "id": "subcategory-fashion-mens-clothing", "name": "Men's Clothing", "slug": "mens-clothing" },
+      { "id": "subcategory-fashion-shoes", "name": "Shoes", "slug": "shoes" },
+      { "id": "subcategory-fashion-accessories", "name": "Accessories", "slug": "accessories" }
+    ]
+  },
+  {
+    "id": "category-home-kitchen",
+    "name": "Home & Kitchen",
+    "slug": "home-kitchen",
+    "icon": "cooking-pot",
+    "image": "assets/images/categories/home-kitchen.jpg",
+    "subcategories": [
+      { "id": "subcategory-home-kitchen-cookware", "name": "Cookware", "slug": "cookware" },
+      { "id": "subcategory-home-kitchen-appliances", "name": "Kitchen Appliances", "slug": "kitchen-appliances" },
+      { "id": "subcategory-home-kitchen-decor", "name": "Home Decor", "slug": "home-decor" },
+      { "id": "subcategory-home-kitchen-storage", "name": "Storage & Organization", "slug": "storage-organization" }
+    ]
+  },
+  {
+    "id": "category-beauty-personal-care",
+    "name": "Beauty & Personal Care",
+    "slug": "beauty-personal-care",
+    "icon": "sparkles",
+    "image": "assets/images/categories/beauty-personal-care.jpg",
+    "subcategories": [
+      { "id": "subcategory-beauty-skincare", "name": "Skincare", "slug": "skincare" },
+      { "id": "subcategory-beauty-makeup", "name": "Makeup", "slug": "makeup" },
+      { "id": "subcategory-beauty-haircare", "name": "Hair Care", "slug": "hair-care" },
+      { "id": "subcategory-beauty-fragrance", "name": "Fragrance", "slug": "fragrance" }
+    ]
+  },
+  {
+    "id": "category-sports-fitness",
+    "name": "Sports & Fitness",
+    "slug": "sports-fitness",
+    "icon": "dumbbell",
+    "image": "assets/images/categories/sports-fitness.jpg",
+    "subcategories": [
+      { "id": "subcategory-sports-fitness-equipment", "name": "Fitness Equipment", "slug": "fitness-equipment" },
+      { "id": "subcategory-sports-fitness-outdoor", "name": "Outdoor & Camping", "slug": "outdoor-camping" },
+      { "id": "subcategory-sports-fitness-apparel", "name": "Sportswear", "slug": "sportswear" },
+      { "id": "subcategory-sports-fitness-team-sports", "name": "Team Sports", "slug": "team-sports" }
+    ]
+  },
+  {
+    "id": "category-books-education",
+    "name": "Books & Education",
+    "slug": "books-education",
+    "icon": "book-open",
+    "image": "assets/images/categories/books-education.jpg",
+    "subcategories": [
+      { "id": "subcategory-books-fiction", "name": "Fiction", "slug": "fiction" },
+      { "id": "subcategory-books-nonfiction", "name": "Nonfiction", "slug": "nonfiction" },
+      { "id": "subcategory-books-textbooks", "name": "Textbooks", "slug": "textbooks" },
+      { "id": "subcategory-books-learning", "name": "Learning & Study Guides", "slug": "learning-study-guides" }
+    ]
+  },
+  {
+    "id": "category-automotive",
+    "name": "Automotive",
+    "slug": "automotive",
+    "icon": "car",
+    "image": "assets/images/categories/automotive.jpg",
+    "subcategories": [
+      { "id": "subcategory-automotive-accessories", "name": "Car Accessories", "slug": "car-accessories" },
+      { "id": "subcategory-automotive-parts", "name": "Parts & Components", "slug": "parts-components" },
+      { "id": "subcategory-automotive-tools", "name": "Tools & Equipment", "slug": "tools-equipment" },
+      { "id": "subcategory-automotive-care", "name": "Car Care", "slug": "car-care" }
+    ]
+  }
+]

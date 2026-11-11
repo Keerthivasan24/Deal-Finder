@@ -8,19 +8,19 @@ export class MockDataService {
   constructor(private readonly http: HttpClient) {}
 
   getCategories(): Observable<Category[]> {
-    return this.http.get<Category[]>('/data/categories.json');
+    return this.http.get<Category[]>('data/categories.json');
   }
 
   getProducts(): Observable<Product[]> {
-    return this.http.get<Product[]>('/data/products.json');
+    return this.http.get<Product[]>('data/products.json');
   }
 
   getCoupons(): Observable<Coupon[]> {
-    return this.http.get<Coupon[]>('/data/coupons.json');
+    return this.http.get<Coupon[]>('data/coupons.json');
   }
 
   getDeals(): Observable<Deal[]> {
-    return this.http.get<Deal[]>('/data/deals.json');
+    return this.http.get<Deal[]>('data/deals.json');
   }
 
   getHomePageData(): Observable<[Category[], Product[], Deal[], Coupon[]]> {
